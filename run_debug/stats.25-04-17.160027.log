@@ -1,0 +1,443 @@
+
+=== PERFECT FLAGS ===============================================================
+
+PERFECT_BRANCH_PRED = 0
+PERFECT_DCACHE      = 0
+PERFECT_ICACHE      = 0
+PERFECT_TRACE_CACHE = 1
+ORACLE_DISAMBIG     = 0
+
+=== STRUCTURES AND POLICIES =====================================================
+
+FETCH QUEUE = 64
+RENAMER:
+   ACTIVE LIST = 256
+   PHYSICAL REGISTER FILE = 320 (auto-sized w.r.t. Active List)
+   BRANCH CHECKPOINTS = 32
+SCHEDULER:
+   ISSUE QUEUE = 64
+   PARTITIONS = 4
+   PRESTEER = 0
+   IDEAL AGE-BASED = 0
+LOAD/STORE UNIT:
+   LOAD QUEUE = 128
+   STORE QUEUE = 128
+   MEMORY DEPENDENCE PREDICTOR: MDP-ctr (max ctr: 31)
+   SPLIT STORES = 0
+
+=== PIPELINE STAGE WIDTHS =======================================================
+
+FETCH WIDTH = 8
+DISPATCH WIDTH = 8
+ISSUE WIDTH = 16
+RETIRE WIDTH = 8
+
+=== EXECUTION LANES =============================================================
+
+        |latency |   BR   |   LS   |  ALU_S |  ALU_C | LS_FP  | ALU_FP |  MTF   |
+        +--------+--------+--------+--------+--------+--------+--------+--------+
+lane 0  |    3   |        |   x    |        |        |   x    |        |        |
+lane 1  |    1   |   x    |        |   x    |        |        |        |   x    |
+lane 2  |    3   |        |        |        |   x    |        |   x    |        |
+lane 3  |    1   |   x    |        |   x    |        |        |        |   x    |
+lane 4  |    1   |   x    |        |   x    |        |        |        |   x    |
+lane 5  |    3   |        |   x    |        |        |   x    |        |        |
+lane 6  |    1   |   x    |        |   x    |        |        |        |   x    |
+lane 7  |    3   |        |        |        |   x    |        |   x    |        |
+lane 8  |    3   |        |   x    |        |        |   x    |        |        |
+lane 9  |    1   |   x    |        |   x    |        |        |        |   x    |
+lane 10  |    3   |        |        |        |   x    |        |   x    |        |
+lane 11  |    1   |   x    |        |   x    |        |        |        |   x    |
+lane 12  |    1   |   x    |        |   x    |        |        |        |   x    |
+lane 13  |    3   |        |   x    |        |        |   x    |        |        |
+lane 14  |    1   |   x    |        |   x    |        |        |        |   x    |
+lane 15  |    3   |        |        |        |   x    |        |   x    |        |
+
+=== MEMORY HIERARCHY ============================================================
+
+L1 I$:
+   64 KB, 8-way set-associative, 64 B block size
+   hit latency = 1 cycles (superseded by fetch unit's pipeline depth)
+   MHSRs = 32
+L1 D$:
+   64 KB, 4-way set-associative, 64 B block size
+   hit latency = 1 cycles (superseded by load/store lane's pipeline depth)
+   MHSRs = 128
+L2$:
+   1 MB, 8-way set-associative, 64 B block size
+   hit latency = 10 cycles 
+   MHSRs = 128
+L3$:
+   8 MB, 16-way set-associative, 128 B block size
+   hit latency = 30 cycles 
+   MHSRs = 128
+   miss latency = 100 cycles
+
+=== BRANCH PREDICTOR ============================================================
+
+BQ_SIZE = 352 (auto-sized)
+BTB_ENTRIES = 8192
+BTB_ASSOC = 4
+RAS_SIZE = 64
+RAS_RECOVER_MODEL = RAS_RECOVER_TOS_POINTER_AND_CONTENT
+COND_BRANCH_PRED_PER_CYCLE = 3
+CBP_ALGORITHM = gshare
+CBP_PC_LENGTH = 20
+CBP_BHR_LENGTH = 16
+IBP_PC_LENGTH = 20
+IBP_BHR_LENGTH = 16
+ENABLE_TRACE_CACHE = 1
+
+=== VALUE PREDICTOR ============================================================
+
+VP-eligible configuration:
+   predINTALU = 1 
+   predFPALU  = 0 
+   predLOAD   = 1 
+
+VALUE PREDICTOR = stride (Project 4 spec. implementation)
+   VPQsize             = 300 
+   oracleconf          = 0 (real confidence)
+   # index bits        = 7 
+   # tag bits          = 10 
+   confmax             = 31 
+
+COST ACCOUNTING
+	One SVP entry:
+		tag              :  10 bits  // num_tag_bits
+		conf             :   5 bits  // formula: (uint64_t)ceil(log2((double)(confmax+1)))
+		retired_value    :  64 bits  // RISCV64 integer size.
+		stride           :  64 bits  // RISCV64 integer size. Competition opportunity: truncate stride to far fewer bits based on stride distribution of stride-predictable instructions.
+		instance ctr     :   9 bits  // formula: (uint64_t)ceil(log2((double)VPQsize))
+		-------------------------
+		bits/SVP entry   : 152 bits
+	Total storage cost (bits) = (128 SVP entries x 152 bits/SVP entry) = 19456 bits
+	Total storage cost (bytes) = 2432.00 B (2.38 KB)
+
+=== INTERNAL SIMULATOR STRUCTURES ===============================================
+
+PAYLOAD_BUFFER_SIZE = 1024
+
+=== END CONFIGURATION ===========================================================
+
+-------- DEBUG: retired instruction count = 1000
+SVP entry #:   tag(hex)   conf   retired_value   stride   instance    insn_num
+          0:         0      0                0          0          0      1000
+          1:         0      0                0          0          0      1000
+          2:         0      0                0          0          0      1000
+          3:         0      0                0          0          0      1000
+          4:         0      0                0          0          0      1000
+          5:         0      0                0          0          0      1000
+          6:        a8      0              346          1          0      1000
+          7:        a8      0             1796          0          0      1000
+          8:        a8      0              346          1          0      1000
+          9:        a8      0             1796          0          0      1000
+         10:        a8      0             2047          0          0      1000
+         11:        a8      0  18446744073709551269         -1          0      1000
+         12:        a8      0  18446744073709549819          0          0      1000
+         13:        a8      0  18446744073709551615          0          0      1000
+         14:        a8      0  18446744073709551615          0          0      1000
+         15:        a8      0              346          1          0      1000
+         16:        a8      0             1796          0          0      1000
+         17:        a9      6             2688          0          0      1000
+         18:        a8      0              348        348          3      1000
+         19:        a8      0             1798       1798          2      1000
+         20:        a8      0              346        346          2      1000
+         21:        a8      0             1796       1796          2      1000
+         22:        a9      0             1797          1          0      1000
+         23:        a8      0              348        348          2      1000
+         24:        a8      0             4096       4096          1      1000
+         25:        a8      0           709176          0          0      1000
+         26:        a8      0             2047          0          0      1000
+         27:        a8      0             1798          0          0      1000
+         28:        a8      0             2047          0          0      1000
+         29:         0      0                0          0          0      1000
+         30:        a8      0             1798          0          0      1000
+         31:        a8      0             1798          0          0      1000
+         32:        a8      0         77883344   77883344          0      1000
+         33:        a9      6              168          0          0      1000
+         34:        a8      0          9998336          0          0      1000
+         35:        a8      0             4096          0          0      1000
+         36:        a8      0             1799          0          0      1000
+         37:        a8      0                1          0          0      1000
+         38:        a8      0         10000000          0          0      1000
+         39:        a8      0              349          1          0      1000
+         40:        a8      0           709176          0          0      1000
+         41:         0      0                0          0          0      1000
+         42:        a8      1              346          0          0      1000
+         43:         0      0                0          0          0      1000
+         44:         0      0                0          0          0      1000
+         45:        a8      0          3682304       2048          2      1000
+         46:        a8     12               87          0          2      1000
+         47:        a8      0          3682650       2046          2      1000
+         48:        a8      0         81565994       2046          2      1000
+         49:        a8      0         14730600       8184          2      1000
+         50:        a8      0        130816184       8184          2      1000
+         51:        a8      0               82          0          2      1000
+         52:         0      0                0          0          0      1000
+         53:        a8      0            16022          1          0      1000
+         54:         0      0                0          0          0      1000
+         55:        a8      0            16021          0          0      1000
+         56:        a8      1                0          0          0      1000
+         57:         0      0                0          0          0      1000
+         58:        a8      0                1          1          2      1000
+         59:        a8      0              346        346          2      1000
+         60:        a8      0             1798       1798          2      1000
+         61:        a8      0           705081     705081          2      1000
+         62:        a8      0                1          1          2      1000
+         63:        a8      0           705080     705080          2      1000
+         64:         0      0                0          0          0      1000
+         65:         0      0                0          0          0      1000
+         66:        a8      3         77883344          0          3      1000
+         67:        a8      3             2048          0          3      1000
+         68:        a8      0        116085584  116085584          3      1000
+         69:        a8      0              349        349          3      1000
+         70:        a7      2              348          1          3      1000
+         71:        a8      0             1798       1798          1      1000
+         72:        a7      0         81563948      -2047          3      1000
+         73:        a7      3                1          0          3      1000
+         74:        a7      3           705081          0          6      1000
+         75:        a7      3                1          0          6      1000
+         76:        a7      3            15768          0          6      1000
+         77:        a7      4                0          0          6      1000
+         78:        a7      4                0          0          3      1000
+         79:        a7      0            15768      15768          4      1000
+         80:        a7      0              152        152          4      1000
+         81:        a7      0              152        152          4      1000
+         82:        a7      0             2432       2432          4      1000
+         83:        a7      0           707512     707512          4      1000
+         84:        a7      0             1070       1070          4      1000
+         85:        a7      0             4096       4096          4      1000
+         86:        a8      0                1          1          0      1000
+         87:         0      0                0          0          0      1000
+         88:        a8      0            16022      16022          0      1000
+         89:         0      0                0          0          0      1000
+         90:         0      0                0          0          0      1000
+         91:         0      0                0          0          0      1000
+         92:        a8      0             4096       4096          0      1000
+         93:        a7      0         99809424   99809424          3      1000
+         94:        a7      0             8560       8560          3      1000
+         95:        a7      3             1071          1          3      1000
+         96:        a7      3         99817984          8          3      1000
+         97:         0      0                0          0          0      1000
+         98:         0      0                0          0          0      1000
+         99:        a7      3            86280          0          3      1000
+        100:        a8      5            86632          0          0      1000
+        101:        a7      0            16021      16021          3      1000
+        102:        a7      0           709176     709176          3      1000
+        103:        a7      0              346        346          3      1000
+        104:        a7      0        535742832  535742832          3      1000
+        105:        a8      5             1420          0          0      1000
+        106:        a7      0        535742832  535742832          5      1000
+        107:        a8      5  18446744073709547216          0          0      1000
+        108:        a7      0           705080     705080          4      1000
+        109:        a7      0             4096       4096          4      1000
+        110:        a7      0           709176     709176          4      1000
+        111:        a7      0             2048       2048          4      1000
+        112:        a8      5           709176          0          0      1000
+        113:        a7      0             1797       1797          4      1000
+        114:        a7      0          3680256       2048          0      1000
+        115:        a7      6        116085584          0          0      1000
+        116:         0      0                0          0          0      1000
+        117:        a7      0              347          3          0      1000
+        118:        a7      6               87          0          0      1000
+        119:         0      0                0          0          0      1000
+        120:         0      0                0          0          0      1000
+        121:         0      0                0          0          0      1000
+        122:         0      0                0          0          0      1000
+        123:         0      0                0          0          0      1000
+        124:        a7      0          3680603       2051          0      1000
+        125:        a7      0         14722412       8204          0      1000
+        126:        a7      0        130807996       8204          0      1000
+        127:        a7      0               82         -5          0      1000
+VPQ entry #:   PC(hex)   PCtag(hex)   PCindex(hex)
+        116:     14ee8             a7              3a
+        117:     14eec             a7              3b
+        118:     14ef0             a7              3c
+        119:     14ef4             a7              3d
+        120:     14ef8             a7              3e
+        121:     14efc             a7              3f
+        122:     14f10             a7              44
+        123:     14f14             a7              45
+        124:     14f18             a7              46
+        125:     14f1c             a7              47
+        126:     14f20             a7              48
+        127:     14f24             a7              49
+        128:     14f28             a7              4a
+        129:     14f2c             a7              4b
+        130:     14f30             a7              4c
+        131:     14f34             a7              4d
+        132:     14f38             a7              4e
+        133:     14f3c             a7              4f
+        134:     14f40             a7              50
+        135:     14f44             a7              51
+        136:     14f48             a7              52
+        137:     14f4c             a7              53
+        138:     14f50             a7              54
+        139:     14f54             a7              55
+        140:     14f74             a7              5d
+        141:     14f78             a7              5e
+        142:     14f7c             a7              5f
+        143:     14f80             a7              60
+        144:     14f8c             a7              63
+        145:     14f94             a7              65
+        146:     14f98             a7              66
+        147:     14f9c             a7              67
+        148:     14fa0             a7              68
+        149:     15108             a8              42
+        150:     1510c             a8              43
+        151:     15110             a8              44
+        152:     15114             a8              45
+        153:     150b4             a8              2d
+        154:     150b8             a8              2e
+        155:     150bc             a8              2f
+        156:     150c0             a8              30
+        157:     150c4             a8              31
+        158:     150c8             a8              32
+        159:     150cc             a8              33
+        160:     150e8             a8              3a
+        161:     150ec             a8              3b
+        162:     150f0             a8              3c
+        163:     150f4             a8              3d
+        164:     150f8             a8              3e
+        165:     150fc             a8              3f
+        166:     14ee8             a7              3a
+        167:     14eec             a7              3b
+        168:     14ef0             a7              3c
+        169:     14ef4             a7              3d
+        170:     14ef8             a7              3e
+        171:     14efc             a7              3f
+        172:     14f10             a7              44
+        173:     14f14             a7              45
+        174:     14f18             a7              46
+        175:     14f1c             a7              47
+        176:     14f20             a7              48
+        177:     14f24             a7              49
+        178:     14f28             a7              4a
+        179:     14f2c             a7              4b
+        180:     14f30             a7              4c
+        181:     14f34             a7              4d
+        182:     14f38             a7              4e
+        183:     14f3c             a7              4f
+        184:     14f40             a7              50
+        185:     14f44             a7              51
+        186:     14f48             a7              52
+        187:     14f4c             a7              53
+        188:     14f50             a7              54
+        189:     14f54             a7              55
+        190:     14f74             a7              5d
+        191:     14f78             a7              5e
+        192:     14f7c             a7              5f
+        193:     14f80             a7              60
+        194:     14f8c             a7              63
+        195:     14f94             a7              65
+        196:     14f98             a7              66
+        197:     14f9c             a7              67
+        198:     14fa0             a7              68
+        199:     15108             a8              42
+        200:     1510c             a8              43
+        201:     15110             a8              44
+        202:     15114             a8              45
+        203:     150b4             a8              2d
+        204:     150b8             a8              2e
+        205:     150bc             a8              2f
+        206:     150c0             a8              30
+        207:     150c4             a8              31
+        208:     150c8             a8              32
+        209:     150cc             a8              33
+        210:     150e8             a8              3a
+        211:     150ec             a8              3b
+        212:     150f0             a8              3c
+        213:     150f4             a8              3d
+        214:     150f8             a8              3e
+        215:     150fc             a8              3f
+        216:     14ee8             a7              3a
+        217:     14eec             a7              3b
+        218:     14ef0             a7              3c
+        219:     14ef4             a7              3d
+        220:     14ef8             a7              3e
+        221:     14efc             a7              3f
+        222:     14f10             a7              44
+        223:     14f14             a7              45
+        224:     14f18             a7              46
+        225:     14f1c             a7              47
+        226:     14f20             a7              48
+        227:     14f24             a7              49
+        228:     14f28             a7              4a
+        229:     14f2c             a7              4b
+        230:     14f30             a7              4c
+        231:     14f34             a7              4d
+        232:     14f38             a7              4e
+        233:     14f3c             a7              4f
+        234:     14f40             a7              50
+        235:     14f44             a7              51
+        236:     14f48             a7              52
+        237:     14f4c             a7              53
+        238:     14f50             a7              54
+        239:     14f54             a7              55
+        240:     14f74             a7              5d
+        241:     14f78             a7              5e
+        242:     14f7c             a7              5f
+        243:     14f80             a7              60
+        244:     14f8c             a7              63
+        245:     14f94             a7              65
+        246:     14f98             a7              66
+        247:     14f9c             a7              67
+        248:     14fa0             a7              68
+        249:     15108             a8              42
+        250:     1510c             a8              43
+        251:     15110             a8              44
+        252:     15114             a8              45
+        253:     1511c             a8              47
+        254:     1513c             a8              4f
+        255:     15140             a8              50
+        256:     15144             a8              51
+        257:     15148             a8              52
+        258:     1514c             a8              53
+        259:     15150             a8              54
+        260:     15154             a8              55
+[stats]
+commit_count : 1000
+cycle_count : 1718
+exception_count : 0
+ld_vio_count : 2
+split_count : 0
+[rates]
+ipc_rate : 0.58
+BRANCH PREDICTION MEASUREMENTS---------------------
+Type                      n          m     mr  mpki
+All                     142         38 26.76% 38.00
+Branch                  104         38 36.54% 38.00
+Jump Direct              12          0  0.00%  0.00
+Call Direct              14          0  0.00%  0.00
+Jump Indirect             0          0  -nan%  0.00
+Call Indirect             0          0  -nan%  0.00
+Return                   12          0  0.00%  0.00
+(Number of Jump Indirects whose target was the next sequential PC = 0)
+BTB MEASUREMENTS-----------------------------------
+BTB misses (fetch cycles squashed due to a BTB miss) = 0 (0.00% of all cycles)
+LSU MEASUREMENTS-----------------------------------
+LOADS (retired)
+  loads            = 289
+  disambig. stall  = 4 (1.38%)
+     disambig. stall: addr. unknown = 4 (1.38%)
+        true dep. stall             = 1 (0.35%)
+        false dep. stall            = 3 (1.04%)
+     disambig. stall: value or size = 0 (0.00%)
+  load violations  = 2 (0.69%)
+  forward          = 84 (29.07%)
+  miss stall       = 30 (10.38%)
+STORES (retired)
+  stores           = 142
+  miss stall       = 0 (0.00%)
+MDP quick stats
+  false stalls     = 3
+  load violations  = 2
+VPU MEASUREMENTS-----------------------------------
+vpmeas_ineligible         :        284 ( 28.40%) // Not eligible for value prediction.
+vpmeas_eligible           :        716 ( 71.60%) // Eligible for value prediction.
+   vpmeas_miss            :        323 ( 32.30%) // VPU was unable to generate a value prediction (e.g., SVP miss).
+   vpmeas_conf_corr       :          0 (  0.00%) // VPU generated a confident and correct value prediction.
+   vpmeas_conf_incorr     :          0 (  0.00%) // VPU generated a confident and incorrect value prediction. (MISPREDICTION)
+   vpmeas_unconf_corr     :        164 ( 16.40%) // VPU generated an unconfident and correct value prediction. (LOST OPPORTUNITY)
+   vpmeas_unconf_incorr   :        229 ( 22.90%) // VPU generated an unconfident and incorrect value prediction.
